@@ -1,0 +1,113 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  administrator
+  user
+}
+
+model Manufacture {
+  id        Int       @id @default(autoincrement())
+  name      String    @unique
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  product   Product[]
+}
+
+model Type {
+  id        Int       @id @default(autoincrement())
+  name      String
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  product   Product[]
+}
+
+model User {
+  id        Int      @id @default(autoincrement())
+  username  String   @unique
+  password  String
+  full_name String
+  role      Role
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  log       Log[]
+}
+
+model Log {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  type      String
+  user      User     @relation(fields: [userId], references: [id])
+  action    String
+  createdAt DateTime @default(now())
+}
+
+model StatsAsset {
+  id        Int       @id @default(autoincrement())
+  name      String
+  createdAt DateTime  @default(now())
+  product   Product[]
+}
+
+model Product {
+  id            Int         @id @default(autoincrement())
+  serial_number String      @unique
+  hostname      String      @unique
+  product_name  String
+  manufactureId Int
+  typeId        Int
+  statsId       Int         @default(1)
+  spesification String
+  warranty      DateTime
+  buy_date      DateTime
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @default(now())
+  manufacture   Manufacture @relation(fields: [manufactureId], references: [id])
+  type          Type        @relation(fields: [typeId], references: [id])
+  statsasset    StatsAsset  @relation(fields: [statsId], references: [id])
+  asset         Asset[]
+}
+
+model History {
+  id        Int      @id @default(autoincrement())
+  used_by   String
+  reason    String
+  createdAt DateTime @default(now())
+  assetId   Int
+  asset     Asset    @relation(fields: [assetId], references: [id], onDelete: Cascade)
+}
+
+model Asset {
+  id         Int       @id @default(autoincrement())
+  employeeId Int
+  productId  Int
+  location   String
+  tag_id     String    @unique
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+  employee   Employee  @relation(fields: [employeeId], references: [id])
+  product    Product   @relation(fields: [productId], references: [id])
+  history    History[]
+}
+
+model Employee {
+  id            Int      @id @default(autoincrement())
+  nik           String   @unique
+  full_name     String
+  email         String   @unique
+  title         String
+  department    String
+  bussines_unit String
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  asset         Asset[]
+}
