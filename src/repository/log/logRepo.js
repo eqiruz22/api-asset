@@ -16,6 +16,7 @@ export default class LogRepository {
         select: {
           id: true,
           action: true,
+          type: true,
           createdAt: true,
           user: {
             select: {

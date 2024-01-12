@@ -102,7 +102,6 @@ export const updateEmployee = async (req, res) => {
       item.unit,
       item.user
     );
-
     return res.status(200).json({
       result: data,
     });

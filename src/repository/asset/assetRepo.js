@@ -294,8 +294,17 @@ export default class AssetRepository {
   async destroy(id, userId) {
     const isId = Number(id);
     const uId = Number(userId);
+    // const validField = [isId, uId];
+    // validField.forEach((item) => {
+    //   if (isNaN(item) || !Number.isInteger(item)) {
+    //     throw new Error(`${item} must be a valid integer`);
+    //   }
+    // });
     if (isNaN(isId) || !Number.isInteger(isId)) {
-      throw new Error("asset id must be a valid integer");
+      throw new Error(`asset id must be a valid integer`);
+    }
+    if (isNaN(uId) || !Number.isInteger(uId)) {
+      throw new Error(`user id must be a valid integer`);
     }
     try {
       const data = await prisma.asset.findUnique({
@@ -318,7 +327,9 @@ export default class AssetRepository {
       });
       if (!data) {
         return `asset id ${isId} not found`;
-      } else {
+      }
+
+      if (data) {
         await prisma.product.update({
           where: {
             id: data.productId,
@@ -339,8 +350,8 @@ export default class AssetRepository {
             id: isId,
           },
         });
-        return "delete success";
       }
+      return "delete success";
     } catch (error) {
       throw error;
     }

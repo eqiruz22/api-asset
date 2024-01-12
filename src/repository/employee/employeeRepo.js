@@ -170,52 +170,29 @@ export default class EmployeeRepository {
       if (!data) {
         return `employee id ${isId} not found`;
       }
-      const [eNik, mail] = await Promise.all([
-        prisma.employee.findUnique({
+      await prisma.$transaction([
+        prisma.employee.update({
           where: {
+            id: isId,
+          },
+          data: {
             nik: nik,
+            full_name: full_name,
+            email: email,
+            title: title,
+            department: department,
+            bussines_unit: bussines_unit,
           },
         }),
-        prisma.employee.findUnique({
-          where: {
-            email: email,
+        prisma.log.create({
+          data: {
+            userId: uId,
+            type: "Update",
+            action: `update user with nik ${nik} & name ${full_name}`,
           },
         }),
       ]);
-      const errMessage = [];
-      if (eNik) {
-        errMessage.eNik = `employee nik ${nik} already created`;
-      }
-      if (mail) {
-        errMessage.mail = `employee email ${email} already created`;
-      }
-      if (Object.keys(errMessage).length > 0) {
-        return errMessage;
-      } else {
-        await prisma.$transaction([
-          prisma.employee.update({
-            where: {
-              id: isId,
-            },
-            data: {
-              nik: nik,
-              full_name: full_name,
-              email: email,
-              title: title,
-              department: department,
-              bussines_unit: bussines_unit,
-            },
-          }),
-          prisma.log.create({
-            data: {
-              userId: uId,
-              type: "Update",
-              action: `update user with nik ${nik} & name ${full_name}`,
-            },
-          }),
-        ]);
-        return "update success";
-      }
+      return "update success";
     } catch (error) {
       throw error;
     }
