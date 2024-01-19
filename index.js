@@ -12,6 +12,7 @@ import LogRoute from "./src/routes/log/logRoute.js";
 import EmployeeRoute from "./src/routes/employee/employeeRoute.js";
 import LoginRoute from "./src/routes/login/loginRoute.js";
 import RequireAuth from "./src/middleware/requireAuth.js";
+import PeripheralRoute from "./src/routes/peripheral/peripheralRoute.js";
 dotenv.config();
 const app = express();
 
@@ -29,6 +30,7 @@ app.use(AssetRoute);
 app.use(HistoryRoute);
 app.use(LogRoute);
 app.use(EmployeeRoute);
+app.use(PeripheralRoute);
 
 app.use("*", (req, res) => {
   const uri = req.originalUrl;

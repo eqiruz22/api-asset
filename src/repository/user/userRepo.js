@@ -61,10 +61,17 @@ export default class UserRepository {
     }
   }
 
-  async create(username, password, full_name, role) {
+  async create(username, password, full_name, role, userId) {
     const salt = 10;
+    const uId = Number(userId);
     const hashPassword = await bcrypt.hash(password, salt);
-    const requireField = ["username", "password", "full_name", "role"];
+    const requireField = [
+      "username",
+      "password",
+      "full_name",
+      "role",
+      "userId",
+    ];
     requireField.forEach((item) => {
       if (!eval(item)) {
         throw new Error(`${item} is required`);
@@ -79,33 +86,46 @@ export default class UserRepository {
       if (data) {
         return `${username} already created`;
       }
-      await prisma.user.create({
-        data: {
-          username: username,
-          password: hashPassword,
-          full_name: full_name,
-          role: role,
-        },
-      });
+      await prisma.$transaction([
+        prisma.user.create({
+          data: {
+            username: username,
+            password: hashPassword,
+            full_name: full_name,
+            role: role,
+          },
+        }),
+        prisma.log.create({
+          data: {
+            userId: uId,
+            type: "Create",
+            action: `Create user ${username}`,
+          },
+        }),
+      ]);
       return "success create new user";
     } catch (error) {
       throw error;
     }
   }
 
-  async update(id, username, password, full_name, role) {
+  async update(id, username, password, full_name, role, userId) {
     const isId = Number(id);
+    const uId = Number(userId);
     const salt = 10;
     const hashPassword = await bcrypt.hash(password, salt);
-    const requireField = ["id", "username", "full_name", "role"];
+    const requireField = ["id", "username", "full_name", "role", "userId"];
+    const validField = [isId, uId];
     requireField.forEach((item) => {
       if (!eval(item)) {
         throw new Error(`${item} is required`);
       }
     });
-    if (isNaN(isId) || !Number.isInteger(isId)) {
-      throw new Error("user id must be a valid integer");
-    }
+    validField.forEach((item) => {
+      if (isNaN(item) || !Number.isInteger(item)) {
+        throw new Error(`${item} must be a valid integer`);
+      }
+    });
     try {
       const data = await prisma.user.findUnique({
         where: {
@@ -117,39 +137,61 @@ export default class UserRepository {
       }
       delete data["password"];
       if (!password) {
-        await prisma.user.update({
+        await prisma.$transaction([
+          prisma.user.update({
+            where: {
+              id: isId,
+            },
+            data: {
+              username: username,
+              full_name: full_name,
+              role: role,
+            },
+          }),
+          prisma.log.create({
+            data: {
+              userId: uId,
+              type: "Update",
+              action: `Update user ${username}`,
+            },
+          }),
+        ]);
+      }
+      await prisma.$transaction([
+        prisma.user.update({
           where: {
             id: isId,
           },
           data: {
             username: username,
+            password: hashPassword,
             full_name: full_name,
             role: role,
           },
-        });
-      }
-      await prisma.user.update({
-        where: {
-          id: isId,
-        },
-        data: {
-          username: username,
-          password: hashPassword,
-          full_name: full_name,
-          role: role,
-        },
-      });
+        }),
+        prisma.log.create({
+          data: {
+            userId: uId,
+            type: "Update",
+            action: `Update user ${username}`,
+          },
+        }),
+      ]);
       return "update success";
     } catch (error) {
       throw error;
     }
   }
 
-  async destroy(id) {
+  async destroy(id, userId) {
     const isId = Number(id);
-    if (isNaN(isId) || !Number.isInteger(isId)) {
-      throw new Error("user id must be a valid integer");
-    }
+    const uId = Number(userId);
+    const validField = [isId, uId];
+    validField.forEach((item) => {
+      if (isNaN(item) || !Number.isInteger(item)) {
+        throw new Error(`${item} must be a valid integer`);
+      }
+    });
     try {
       const data = await prisma.user.findUnique({
         where: {
@@ -160,11 +202,20 @@ export default class UserRepository {
         return `user id ${isId} not found`;
       }
       delete data["password"];
-      await prisma.user.delete({
-        where: {
-          id: isId,
-        },
-      });
+      await prisma.$transaction([
+        prisma.log.create({
+          data: {
+            userId: uId,
+            type: "Delete",
+            action: `Delete user ${data["username"]}`,
+          },
+        }),
+        prisma.user.delete({
+          where: {
+            id: isId,
+          },
+        }),
+      ]);
       return "delete success";
     } catch (error) {
       throw error;

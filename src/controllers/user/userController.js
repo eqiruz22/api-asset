@@ -50,13 +50,15 @@ export const createUser = async (req, res) => {
     password: req.body.password,
     fullname: req.body.full_name,
     role: req.body.role,
+    user: req.body.userId,
   };
   try {
     const data = await user.create(
       item.username,
       item.password,
       item.fullname,
-      item.role
+      item.role,
+      item.user
     );
     return res.status(200).json({
       result: data,
@@ -81,6 +83,7 @@ export const updateUser = async (req, res) => {
     fullname: req.body.full_name,
     role: req.body.role,
     id: req.params.id,
+    user: req.body.userId,
   };
   try {
     const data = await user.update(
@@ -88,7 +91,8 @@ export const updateUser = async (req, res) => {
       item.username,
       item.password,
       item.fullname,
-      item.role
+      item.role,
+      item.user
     );
     return res.status(200).json({
       result: data,
@@ -116,8 +120,9 @@ export const updateUser = async (req, res) => {
 
 export const deleteUser = async (req, res) => {
   const id = req.params.id;
+  const user = req.body.userId;
   try {
-    const data = await user.destroy(id);
+    const data = await user.destroy(id, user);
     return res.status(200).json({
       result: data,
     });

@@ -16,11 +16,12 @@ enum Role {
 }
 
 model Manufacture {
-  id        Int       @id @default(autoincrement())
-  name      String    @unique
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
-  product   Product[]
+  id         Int          @id @default(autoincrement())
+  name       String       @unique
+  createdAt  DateTime     @default(now())
+  updatedAt  DateTime     @updatedAt
+  product    Product[]
+  peripheral Peripheral[]
 }
 
 model Type {
@@ -29,6 +30,19 @@ model Type {
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
   product   Product[]
+}
+
+model Peripheral {
+  id            Int         @id @default(autoincrement())
+  name          String
+  serial_number String      @unique
+  stats_id      Int
+  manufac_id    Int
+  location      String
+  manufacture   Manufacture @relation(fields: [manufac_id], references: [id])
+  statsasset    StatsAsset  @relation(fields: [stats_id], references: [id])
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
 }
 
 model User {
@@ -52,10 +66,11 @@ model Log {
 }
 
 model StatsAsset {
-  id        Int       @id @default(autoincrement())
-  name      String
-  createdAt DateTime  @default(now())
-  product   Product[]
+  id         Int          @id @default(autoincrement())
+  name       String
+  createdAt  DateTime     @default(now())
+  product    Product[]
+  peripheral Peripheral[]
 }
 
 model Product {

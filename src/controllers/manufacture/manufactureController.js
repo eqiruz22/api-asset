@@ -48,7 +48,6 @@ export const createManufacture = async (req, res) => {
   const user = req.body.userId;
   try {
     const data = await manufacture.create(name, user);
-    await prisma.$disconnect();
     return res.status(200).json({
       result: data,
     });
